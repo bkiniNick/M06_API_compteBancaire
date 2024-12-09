@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\M06_DAL_SQLServeur\M06_DAL_SQLServeur.csproj" />
+  </ItemGroup>
+
 </Project>
