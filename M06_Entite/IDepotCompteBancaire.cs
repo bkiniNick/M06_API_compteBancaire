@@ -8,6 +8,7 @@ namespace M06_Entite
 {
     public interface IDepotCompteBancaire :IDisposable
     {
+        public List<CompteBancaire> GetCompteBancaires();
         public CompteBancaire GetCompteBancaire(Guid p_CompteBancaireId );
         public void CreateCompteBancaire(CompteBancaire p_Compte);
         public void UpdateCompteBancaire(CompteBancaire p_Compte);

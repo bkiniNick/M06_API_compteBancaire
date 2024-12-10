@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using M06_MessageBancaire;
 
 namespace M06_Entite
 {
@@ -41,6 +42,10 @@ namespace M06_Entite
             TypeTransactions = typeTransactions;
             DateTransactions = DateTime.Now;
             Montant = montant;
+        }
+        public MessageTransaction versMessageTransaction()
+        {
+            return new(TransactionId, TypeTransactions, Montant);
         }
     }
 }

@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace M06_MessageBancaire
 {
-    public  class EnveloppeBancaire
+    public class EnveloppeTransaction
     {
         public string Action { get; set; }
-        public MessageCompteBancaire contenu { get; set; }
-        public EnveloppeBancaire()
+        public MessageTransaction transaction{ get; set; }
+        public EnveloppeTransaction()
         {
 
         }
 
-        public EnveloppeBancaire(string p_Action,  MessageCompteBancaire p_contenu)
+        public EnveloppeTransaction(string p_Action ,MessageTransaction p_contenu)
         {
 
             this.Action = p_Action;
-            
-            this.contenu = p_contenu;
+
+            this.transaction = p_contenu;
         }
 
     }

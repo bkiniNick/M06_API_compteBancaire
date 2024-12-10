@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using M06_MessageBancaire;
 
 namespace M06_Entite
 {
@@ -25,6 +26,10 @@ namespace M06_Entite
             CompteBancaireId = Guid.NewGuid();
             TypeCompte = typeCompte;
            
+        }
+        public MessageCompteBancaire versMessageCompteBancaire()
+        {
+            return new MessageCompteBancaire(CompteBancaireId,TypeCompte);
         }
 
     }

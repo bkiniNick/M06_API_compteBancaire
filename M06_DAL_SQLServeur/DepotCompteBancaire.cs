@@ -1,9 +1,16 @@
 ﻿using M06_Entite;
+using M06_MessageBancaire;
+using Microsoft.EntityFrameworkCore.Metadata;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace M06_DAL_SQLServeur
 {
@@ -20,6 +27,12 @@ namespace M06_DAL_SQLServeur
 
             this.m_contexte = p_contexte;
         }
+        public List<CompteBancaire> GetCompteBancaires()
+        {
+            List<CompteBancaire> compteBancaires = m_contexte.CompteBancaires.Select(x=>x.VersEntite()).ToList();
+           
+            return compteBancaires;
+        }
         public CompteBancaire GetCompteBancaire(Guid p_CompteBancaireId)
         {
             CompteBancaireSQLSeveurDTO resultat = m_contexte.CompteBancaires.Where(x => x.CompteBancaireId == p_CompteBancaireId).SingleOrDefault();
@@ -28,34 +41,67 @@ namespace M06_DAL_SQLServeur
 
         public void CreateCompteBancaire(CompteBancaire p_Compte)
         {
-
-            if (p_Compte is null)
+            if (p_Compte == null)
             {
                 throw new ArgumentNullException(nameof(p_Compte));
             }
-            var existingClient = m_contexte.CompteBancaires.FirstOrDefault(c => c.CompteBancaireId == p_Compte.CompteBancaireId);
-            if (existingClient == null)
-            {
-                m_contexte.Add(new CompteBancaireSQLSeveurDTO(p_Compte.TypeCompte));
-                m_contexte.SaveChanges();
-            }
-            else
-            {
-                Console.WriteLine("le client existe deja");
-            }
 
+
+            // Initialisation de la connexion RabbitMQ
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (IConnection connection =  factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "CreateUpdate",
+                                     durable: false,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                EnveloppeBancaire message = new EnveloppeBancaire("create", p_Compte.versMessageCompteBancaire());
+                string messageJson = JsonSerializer.Serialize(message);
+                byte[] body = Encoding.UTF8.GetBytes(messageJson);
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "CreateUpdate",
+                                     basicProperties: null,
+                                     body: body);
+
+              
+            }
+           
         }
+
         public void UpdateCompteBancaire(CompteBancaire p_Compte)
         {
             if (p_Compte is null)
             {
                 throw new ArgumentNullException(nameof(p_Compte));
             }
-            CompteBancaireSQLSeveurDTO l = new CompteBancaireSQLSeveurDTO(p_Compte.TypeCompte);
+           
 
-                this.m_contexte.Update(l);
-            this.m_contexte.SaveChanges();
-            this.m_contexte.ChangeTracker.Clear();
+            // Initialisation de la connexion RabbitMQ
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (IConnection connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "CreateUpdate",
+                                     durable: false,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                EnveloppeBancaire message = new EnveloppeBancaire("update", p_Compte.versMessageCompteBancaire());
+                string messageJson = JsonSerializer.Serialize(message);
+                byte[] body = Encoding.UTF8.GetBytes(messageJson);
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "CreateUpdate",
+                                     basicProperties: null,
+                                     body: body);
+
+
+            }
         }
         public void Dispose()
         {

@@ -35,9 +35,9 @@ namespace M06_MessageBancaire
             DateTransactions = DateTime.Now;
         }
 
-        public MessageTransaction(string typeTransactions, decimal montant)
+        public MessageTransaction(Guid transac , string typeTransactions, decimal montant)
         {
-            TransactionId = Guid.NewGuid();
+            TransactionId = transac;
             TypeTransactions = typeTransactions;
             DateTransactions = DateTime.Now;
             Montant = montant;

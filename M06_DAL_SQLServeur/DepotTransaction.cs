@@ -1,8 +1,11 @@
 ﻿using M06_Entite;
+using M06_MessageBancaire;
+using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace M06_DAL_SQLServeur
@@ -34,6 +37,29 @@ namespace M06_DAL_SQLServeur
             {
                 throw new ArgumentNullException(nameof(p_transaction));
             }
+            // Initialisation de la connexion RabbitMQ
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (IConnection connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "CreateUpdate",
+                                     durable: false,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                EnveloppeTransaction message = new EnveloppeTransaction("create", p_transaction.versMessageTransaction());
+                string messageJson = JsonSerializer.Serialize(message);
+                byte[] body = Encoding.UTF8.GetBytes(messageJson);
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "CreateUpdate",
+                                     basicProperties: null,
+                                     body: body);
+
+
+            }
+            /*
             var existingClient = m_contexte.Transactions.FirstOrDefault(c => c.TransactionId == p_transaction.TransactionId);
             if (existingClient == null)
             {
@@ -43,7 +69,7 @@ namespace M06_DAL_SQLServeur
             else
             {
                 Console.WriteLine("le client existe deja");
-            }
+            }*/
         }
 
 
@@ -53,11 +79,33 @@ namespace M06_DAL_SQLServeur
             {
                 throw new ArgumentNullException(nameof(p_transaction));
             }
-            TransactionSQLServeurDTO l = new TransactionSQLServeurDTO(p_transaction.TypeTransactions, p_transaction.Montant);
+            // Initialisation de la connexion RabbitMQ
+            var factory = new ConnectionFactory() { HostName = "localhost" };
+            using (IConnection connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                channel.QueueDeclare(queue: "CreateUpdate",
+                                     durable: false,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
 
-            this.m_contexte.Update(l);
-            this.m_contexte.SaveChanges();
-            this.m_contexte.ChangeTracker.Clear();
+                EnveloppeTransaction message = new EnveloppeTransaction("update", p_transaction.versMessageTransaction());
+                string messageJson = JsonSerializer.Serialize(message);
+                byte[] body = Encoding.UTF8.GetBytes(messageJson);
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: "CreateUpdate",
+                                     basicProperties: null,
+                                     body: body);
+
+
+            }
+            /* TransactionSQLServeurDTO l = new TransactionSQLServeurDTO(p_transaction.TypeTransactions, p_transaction.Montant);
+
+             this.m_contexte.Update(l);
+             this.m_contexte.SaveChanges();
+             this.m_contexte.ChangeTracker.Clear();*/
         }
         public void Dispose()
         {
